@@ -103,6 +103,8 @@
   <br/>
   <button onclick="validateInputs()">送出</button>
 
+  <button id="queryButton">查詢已收集的配料</button>
+
   <div id="errorMsg" class="error"></div>
 
   <div id="result" style="margin-top: 20px;"></div>
@@ -116,7 +118,7 @@
     {
         code: "NEG",
         name: "傅能量",
-        image: "img.png",
+        image: "./NEG.png",
         stats: {
             power: 4,
             charm: 4,
@@ -127,7 +129,7 @@
     {
         code: "POS",
         name: "鄭能量",
-        image: "img.png",
+        image: "./POS.png",
         stats: {
             power: 0,
             charm: 2,
@@ -138,7 +140,7 @@
     {
         code: "DOU",
         name: "霜渚修",
-        image: "img.png",
+        image: "./DOU.png",
         stats: {
             power: 0,
             charm: 3,
@@ -149,7 +151,7 @@
     {
         code: "LON",
         name: "常法難",
-        image: "img.png",
+        image: "./LON.png",
         stats: {
             power: 1,
             charm: 0,
@@ -160,7 +162,7 @@
     {
         code: "NOR",
         name: "浦通任",
-        image: "img.png",
+        image: "NOR.png",
         stats: {
             power: 2,
             charm: 2,
@@ -171,7 +173,7 @@
     {
         code: "VAM",
         name: "吸血鬼",
-        image: "img.png",
+        image: "VAM.png",
         stats: {
             power: 5,
             charm: 3,
@@ -182,7 +184,7 @@
     {
         code: "ROC",
         name: "部岩壁",
-        image: "img.png",
+        image: "ROC.png",
         stats: {
             power: 2,
             charm: 2,
@@ -193,7 +195,7 @@
     {
         code: "SRA",
         name: "小沙彌",
-        image: "img.png",
+        image: "SRA.png",
         stats: {
             power: 0,
             charm: 4,
@@ -380,6 +382,9 @@
     .then(response => response.json())
     .then(data => {
     const text = data.text; // 例如 "60810000"
+    const container = document.getElementById("result");
+    container.innerHTML = ""; // 清空先前結果
+
     if (roleIndex === 0 || checkpointIndex === 0) {
         // 重置角色和檢查點的情況
         return text;
@@ -387,8 +392,7 @@
     const assigned = text.split("").map(c => parseInt(c)); // [6, 0, 8, 1, 0, 0, 0, 0]
     const options = checkpoints[checkpointIndex].options;
 
-    const container = document.getElementById("result");
-    container.innerHTML = ""; // 清空先前結果
+    
     container.innerHTML = `<h3>${checkpoints[checkpointIndex].name}</h3>`;
 
     const assignedIndex = assigned.findIndex(v => v === roleIndex);
@@ -474,6 +478,99 @@
     });
     return ""; // 返回空字串，因為這裡不需要返回任何東西
   }
+
+
+
+  // ------------ 查詢已收集的配料按鈕事件 ------------
+    document.getElementById("queryButton").addEventListener("click", async () => {
+    const role = document.getElementById("role").value.trim().toUpperCase();
+    const roleIndex = roles.findIndex(r => r.code === role);
+    const resultDiv = document.getElementById("result");
+    const errorMsg = document.getElementById("errorMsg");
+
+    if (roleIndex === -1) {
+        errorMsg.textContent = "角色代碼錯誤";
+        return;
+    }
+
+    errorMsg.textContent = "正在查詢已收集的配料...";
+    resultDiv.innerHTML = "";
+
+    const collectedOptions = []; // 收集到的 options
+    const promises = [];
+
+    for (let checkpointIndex = 1; checkpointIndex <= checkpoints.length; checkpointIndex++) {
+        const url = `${endpoint}&role=${roleIndex}&ckpt=${checkpointIndex}`;
+        promises.push(fetch(url).then(res => res.json()));
+    }
+
+    console.log("promises", promises); // 確認 promises 陣列的內容
+
+    try {
+        const responses = await Promise.all(promises);
+
+        // 累計能力值
+        const totalStats = { ...roles[roleIndex].stats };
+        const roleOptions = [];
+
+        responses.forEach((data, ckptIndex) => {
+        const text = data.text; // 像 "60810000"
+        console.log("text", text); // 確認每個回應的內容
+        const selected = text.split(""); // 每個 option 對應的角色 index (0 表沒人選)
+        const optionIndex = selected.findIndex(r => Number(r) === roleIndex); // 角色 index
+
+        if (optionIndex !== -1) {
+            console.log("ckptIndex", ckptIndex); // 確認選擇的 checkpoint index
+            console.log("optionIndex", optionIndex); // 確認選擇的 option index
+            const option = checkpoints[ckptIndex+1].options[optionIndex];
+            collectedOptions.push({ checkpointIndex: ckptIndex+1, optionIndex, option });
+
+            // 加總能力值
+            for (const key in option.stats) {
+            totalStats[key] += option.stats[key];
+            }
+        }
+        });
+
+        // 顯示角色資訊
+        const role = roles[roleIndex];
+        resultDiv.innerHTML = `
+        <h2>${role.name}</h2>
+        <img src="${role.image}" alt="${role.name}" style="width:100px;"><br>
+        <p><strong>總能力值(已算入配料能力值)：</strong></p>
+        <ul style="list-style:none;padding:0;">
+            <li>權力：${totalStats.power}</li>
+            <li>魅力：${totalStats.charm}</li>
+            <li>體力：${totalStats.strength}</li>
+            <li>智力：${totalStats.intellect}</li>
+        </ul>
+        <hr>
+        `;
+
+        // 顯示配料資訊
+        if (collectedOptions.length === 0) {
+        resultDiv.innerHTML += `<p>尚未收集任何配料。</p>`;
+        } else {
+        resultDiv.innerHTML += `<p><strong>已收集配料：</strong></p>`;
+        collectedOptions.forEach(({ checkpointIndex, optionIndex, option }) => {
+            resultDiv.innerHTML += `
+            <div class="option-button" style="background-color:#e6ffe6;border-color:#28a745;">
+                <p><strong>檢查點：</strong>${checkpoints[checkpointIndex].name}</p>
+                <p><strong>配料：</strong>${option.name}</p>
+                <p>權力：${option.stats.power}　魅力：${option.stats.charm}</p>
+                <p>體力：${option.stats.strength}　智力：${option.stats.intellect}</p>
+            </div>
+            `;
+        });
+        }
+
+        errorMsg.textContent = "";
+    } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "查詢失敗，請稍後再試。";
+    }
+    });
+
 
   </script>
 </body>
