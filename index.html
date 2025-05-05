@@ -325,6 +325,14 @@
     },
     ];
 
+    function roleDisplayHTML(name, image) {
+      return `
+        <h2>${name}</h2>
+        <img src="${image}" alt="${name}" style="width:100px;"><br>
+        <hr>
+      `;
+    }
+    
     async function validateInputs() {
       const role = document.getElementById("role").value.trim().toUpperCase();
       const checkpoint = document.getElementById("checkpoint").value.trim().toUpperCase();
@@ -393,21 +401,19 @@
     const options = checkpoints[checkpointIndex].options;
 
     
-    container.innerHTML = `<h3>${checkpoints[checkpointIndex].name}</h3>`;
+    container.innerHTML += roleDisplayHTML(roles[roleIndex].name, roles[roleIndex].image);
+    container.innerHTML += `<h3><strong>檢查點:</strong> ${checkpoints[checkpointIndex].name}</h3>`;
 
     const assignedIndex = assigned.findIndex(v => v === roleIndex);
 
     if (assignedIndex !== -1) {
         // 這位角色已選擇某個 option
         const chosen = options[assignedIndex];
-        container.innerHTML += `<h3>你已選擇的配料：</h3>
+        container.innerHTML += `<h3>您已選擇的配料：</h3>
         <p><strong>${chosen.name}</strong></p>
-        <ul>
-            <li>權力：${chosen.stats.power}</li>
-            <li>魅力：${chosen.stats.charm}</li>
-            <li>體力：${chosen.stats.strength}</li>
-            <li>智力：${chosen.stats.intellect}</li>
-        </ul>`;
+        <p>權力：${chosen.stats.power}　魅力：${chosen.stats.charm}</p>
+        <p>體力：${chosen.stats.strength}　智力：${chosen.stats.intellect}</p>
+        `;
     } else {
         // 尚未選擇，列出尚未被選走的所有配料
         // 內部於 fetchCheckpointOptions 中的 else 區塊
@@ -418,12 +424,9 @@
             const btn = document.createElement("button");
             btn.innerHTML = `
             <div><strong>${opt.name}</strong></div>
-            <ul style="text-align: left; margin: 5px 0;">
-                <li>權力：${opt.stats.power}</li>
-                <li>魅力：${opt.stats.charm}</li>
-                <li>體力：${opt.stats.strength}</li>
-                <li>智力：${opt.stats.intellect}</li>
-            </ul>`;
+            <p>權力：${opt.stats.power}　魅力：${opt.stats.charm}</p>
+            <p>體力：${opt.stats.strength}　智力：${opt.stats.intellect}</p>
+        `;
             btn.style.display = "inline-block";
             btn.style.margin = "10px";
             btn.style.padding = "10px";
@@ -448,14 +451,12 @@
                 .then(resp => resp.json())
                 .then(res => {
                 if (res.text === "Success") {
-                    container.innerHTML = `<h3>配料選擇成功！</h3>
+                    container.innerHTML = roleDisplayHTML(roles[roleIndex].name, roles[roleIndex].image);
+                    container.innerHTML += `<h3>配料選擇成功！</h3>
                     <p><strong>${opt.name}</strong></p>
-                    <ul>
-                        <li>權力：${opt.stats.power}</li>
-                        <li>魅力：${opt.stats.charm}</li>
-                        <li>體力：${opt.stats.strength}</li>
-                        <li>智力：${opt.stats.intellect}</li>
-                    </ul>`;
+                    <p>權力：${opt.stats.power}　魅力：${opt.stats.charm}</p>
+                    <p>體力：${opt.stats.strength}　智力：${opt.stats.intellect}</p>
+                    `;
                 } else {
                     alert("選擇失敗，可能是該配料已被他人選走！");
                     fetchCheckpointOptions(roleIndex, checkpointIndex); // 重新載入當前狀態
@@ -534,9 +535,8 @@
 
         // 顯示角色資訊
         const role = roles[roleIndex];
-        resultDiv.innerHTML = `
-        <h2>${role.name}</h2>
-        <img src="${role.image}" alt="${role.name}" style="width:100px;"><br>
+        resultDiv.innerHTML = roleDisplayHTML(role.name, role.image);
+        resultDiv.innerHTML += `
         <p><strong>總能力值(已算入配料能力值)：</strong></p>
         <ul style="list-style:none;padding:0;">
             <li>權力：${totalStats.power}</li>
