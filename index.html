@@ -1,416 +1,87 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>檢查點登錄表單</title>
-    <style>
-      /* 全域設定 */
-      body {
-        font-family: "Segoe UI", "Arial", sans-serif;
-        padding: 16px;
-        background-color: #f9f9f9;
-        color: #333;
-        max-width: 480px;
-        margin: auto;
-        font-size: 18px; /* 預設字體大小 */
-      }
-  
-      label {
-        display: block;
-        margin-top: 16px;
-        font-weight: bold;
-        font-size: 18px;
-      }
-  
-      input {
-        margin-top: 6px;
-        padding: 12px;
-        width: 100%;
-        box-sizing: border-box;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-  
-      button {
-        margin-top: 20px;
-        padding: 14px;
-        width: 100%;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 6px;
-        font-size: 18px;
-      }
-  
-      button:hover {
-        background-color: #45a049;
-      }
-  
-      .error {
-        color: red;
-        margin-top: 12px;
-        font-size: 16px;
-        text-align: center;
-      }
-  
-      .loading {
-        color: #888;
-        margin-top: 16px;
-        font-style: italic;
-        text-align: center;
-        font-size: 16px;
-      }
-  
-      .choices {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 24px;
-        justify-content: center;
-      }
-  
-      .choice-btn {
-        width: 100%;
-        max-width: 220px;
-        padding: 14px;
-        border: 1px solid #ccc;
-        background-color: #e0f7fa;
-        color: #333;
-        border-radius: 6px;
-        text-align: center;
-        cursor: pointer;
-        transition: transform 0.4s ease, opacity 0.4s ease;
-        opacity: 0;
-        transform: translateY(20px);
-        animation: floatIn 0.6s forwards;
-        font-size: 17px;
-      }
-  
-      @keyframes floatIn {
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-  
-      .choice-img {
-        width: 100%;
-        height: auto;
-        border-radius: 4px;
-        margin-top: 10px;
-      }
-  
-      .selected-choice {
-        margin-top: 24px;
-        font-weight: bold;
-        background-color: #d9edf7;
-        padding: 12px;
-        border-radius: 6px;
-        text-align: center;
-        font-size: 17px;
-      }
-  
-      .reset-success {
-        margin-top: 18px;
-        color: green;
-        font-weight: bold;
-        text-align: center;
-        font-size: 17px;
-      }
-    </style>
-  </head>
-  
+<head>
+  <meta charset="UTF-8">
+  <title>專屬特調定向越野</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input {
+      margin-top: 5px;
+      padding: 5px;
+      width: 200px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 8px 16px;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
 <body>
+  <h1>專屬特調定向越野</h1>
 
-  <!-- <h2>檢查點登錄表單</h2> -->
-
-  <label for="teamName">隊名：</label>
-  <input type="text" id="teamName" placeholder="請輸入隊名">
+  <label for="role">角色代碼：</label>
+  <input type="text" id="role" style="text-transform: uppercase">
 
   <label for="checkpoint">檢查點代碼：</label>
-  <input type="text" id="checkpoint" placeholder="請輸入檢查點代碼">
+  <input type="text" id="checkpoint" style="text-transform: uppercase">
 
-  <button onclick="validateInput()">送出</button>
+  <br/>
+  <button onclick="validateInputs()">送出</button>
 
   <div id="errorMsg" class="error"></div>
-  <div id="loadingMsg" class="loading"></div>
-  <div id="choiceArea" class="choices"></div>
-  <div id="selectedIngredient" class="selected-choice"></div>
 
   <script>
-    const validTeamNames = ["RESET", "拿鐵", "奶茶", "水果茶", "紅茶", "綠茶", "烏龍茶", "花茶", "蜂蜜茶"];
-    const validCheckpoints = ["RESET", "THA", "SIG", "PLE", "SAO", "QWZ", "MFY", "BGH", "LOP", "ZXC", "VBN", "RTY", "UIO", "HJK"];
+    const validRoles = ["NEG", "POS", "DOU", "LON", "NOR", "VAM", "ROC", "SRA"];
+    const validCheckpoints = ["THA", "SIG", "IKE", "TBO", "WBK", "ARP", "XWR", "QYU"];
 
-    const ingredientMap = {
-      "THA": [
-        "香甜蜂蜜", "暖暖陽光碎片", "熬夜的黑眼圈", "被遺忘的糖果", "五分鐘的偷懶時光", "車站裡迷路的驚慌",
-        "初戀的怦然心動", "撲面而來的午後涼風", "未完待續的夢", "想打噴嚏卻打不出來的感覺"
-      ],
-      "SIG": [
-        "冒險者的勇氣", "忍住不哭的堅強", "卡住喉嚨的告白", "期末考的最後一題", "賽跑時的最後100公尺",
-        "勇敢說不的力量", "站上舞台的心跳", "冰箱裡最後一杯優格", "深夜K書的熱血", "打破鬧鐘的怒氣"
-      ],
-      "PLE": [
-        "迷路的GPS訊號", "失而復得的便當", "空白腦袋的三秒", "下錯公車的懊惱", "忘記帶錢包的驚嚇",
-        "晚點三分鐘的幸福", "突然下雨的狼狽", "好友的暖心傘", "脫掉鞋子的解脫感", "第一次出國的期待"
-      ],
-      "SAO": [
-        "秘密許願的小紙條", "一直藏在心底的夢想", "被遺忘的日記本", "睡前最後一個念頭", "寫錯又擦掉的字跡",
-        "深藏的暗戀心事", "微風吹動的心情", "暴雨後的第一道彩虹", "沒有寄出的情書", "小心翼翼的期待"
-      ],
-      "QWZ": [
-        "被撿到的五元硬幣", "不小心撞到的好朋友", "亂入的便利貼祝福", "電影票掉到口袋裡的巧合",
-        "幸運撿到的折扣券", "一場遲到卻美好的緣分", "飛進嘴裡的棉花糖", "失而復得的耳機",
-        "自動販賣機掉出兩瓶", "超商打折的麵包"
-      ],
-      "MFY": [
-        "熬夜後的靈感爆發", "三點半的泡麵香", "深夜聊天室的狂歡", "睡不著數的第99隻羊",
-        "冷氣房裡的厚毛毯", "被月光叫醒的凌晨", "漫無目的的網購清單", "熬夜追劇的淚水",
-        "藏在抽屜裡的宵夜", "鬧鐘設定錯誤的懊悔"
-      ],
-      "BGH": [
-        "被遺忘的鬧鐘", "開始前的一分鐘", "午後偷懶的瞌睡感", "眷戀的擁抱", "停止轉動的指針",
-        "還沒來得及說出口的話", "想留住的溫柔瞬間", "冷氣房裡的冰涼氣息", "慢動作播放的笑聲",
-        "淡淡的懷舊味道"
-      ],
-      "LOP": [
-        "草莓奶油", "奶蓋泡泡", "巧克力碎片", "抹茶苦甜", "仙女撒的糖霜",
-        "柚子香氣", "杏仁脆片", "海鹽焦糖", "紫葡萄汁", "神秘的隱藏口味"
-      ],
-      "ZXC": [
-        "一秒掉進的白日夢", "平行時空的小插曲", "想不到結局的小說", "翻車的驚奇時刻",
-        "跌進沙發的軟爛感", "意外學會的小才藝", "準備好卻忘詞的窘境", "戲劇性的反轉",
-        "錯按電梯的冒險", "一閃而逝的靈光"
-      ],
-      "VBN": [
-        "被誇獎的一句話", "老師的小提醒", "爸媽的默默關心", "好友無聲的陪伴",
-        "突如其來的擁抱", "被理解的一瞬間", "生日快樂的祝福", "手寫明信片的溫度",
-        "放慢腳步的鼓勵", "傳錯訊息的可愛意外"
-      ],
-      "RTY": [
-        "突然演出的小短劇", "咬到舌頭的尷尬", "成為背景路人的快樂",
-        "講錯話卻被笑出來", "臨時被cue上台的心跳", "假裝很懂的點頭",
-        "朋友不忍直視的造型", "硬擠出來的微笑", "走錯教室的尷尬", "裝酷失敗的瞬間"
-      ],
-      "UIO": [
-        "氣泡水的清爽", "輕輕撥開的水波", "被風吹亂的劉海", "飄起來的小氣球",
-        "洗澡時唱的走音歌", "飛起來的泡泡", "熱呼呼的溫泉味", "新洗好的毛巾",
-        "微微燙腳的水溫", "刷牙時的泡泡嘴"
-      ],
-      "HJK": [
-        "迷失卻自由的心情", "意料之外的收穫", "失敗卻不放棄的勇氣",
-        "路上撿到的小確幸", "停下來喘口氣的允許", "方向錯了也沒關係的釋懷",
-        "拖著疲憊卻想笑的瞬間", "無心插柳的成功", "再見前的眼神", "重新啟程的勇氣"
-      ]
-      // 更多 checkpoint 可陸續補上
-    };
-
-    const ingredientImagesMap = {
-        "THA": [
-            "https://imgur.com/LpajzOw.jpg", "https://imgur.com/IJsbWp4.jpg",
-            "https://imgur.com/4NowLWT.jpg", "https://imgur.com/kS7YSvd.jpg",
-            "https://imgur.com/S7MYdmP.jpg", "https://imgur.com/ndnu2LT.jpg",
-            "https://imgur.com/cWQpHcK.jpg", "https://imgur.com/BmsrRPK.jpg",
-            "https://imgur.com/2DMgamC.jpg", "https://imgur.com/LoToSFC.jpg"
-        ],
-        "SIG": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "PLE": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "SAO": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "QWZ": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "MFY": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "BGH": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "LOP": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "ZXC": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "VBN": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "RTY": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "UIO": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ],
-        "HJK": [
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg",
-            "https://imgur.com/xaeEyIJ.jpg", "https://imgur.com/xaeEyIJ.jpg"
-        ]
-
-    }
-
-    function validateInput() {
-      const teamNameInput = document.getElementById("teamName").value.trim().toUpperCase();
-      const checkpointInput = document.getElementById("checkpoint").value.trim().toUpperCase();
-      const errorDiv = document.getElementById("errorMsg");
-      const loadingMsg = document.getElementById("loadingMsg");
-      const choiceArea = document.getElementById("choiceArea");
-      const selectedIngredient = document.getElementById("selectedIngredient");
-
-      errorDiv.textContent = "";
-      loadingMsg.textContent = "";
-      choiceArea.innerHTML = "";
-      selectedIngredient.textContent = "";
-
-      if (!teamNameInput || !checkpointInput) {
-        errorDiv.textContent = "請填寫所有欄位。";
-        return;
-      }
-
-      const teamIndex = validTeamNames.indexOf(teamNameInput);
-      const ckptIndex = validCheckpoints.indexOf(checkpointInput);
+    function validateInputs() {
+      const role = document.getElementById("role").value.trim().toUpperCase();
+      const checkpoint = document.getElementById("checkpoint").value.trim().toUpperCase();
+      const errorMsg = document.getElementById("errorMsg");
+      errorMsg.textContent = ""; // 清除之前的錯誤訊息
 
       let errors = [];
-      if (teamIndex === -1) errors.push("隊名錯誤");
-      if (ckptIndex === -1) errors.push("檢查點代碼錯誤");
 
-      if (errors.length > 0) {
-        errorDiv.textContent = errors.join("；");
-        return;
+      if (!role || !checkpoint) {
+        errors.push("請填寫所有欄位。");
+      } else {
+        if (!validRoles.includes(role)) {
+          errors.push("角色代碼錯誤");
+        }
+        if (!validCheckpoints.includes(checkpoint)) {
+          errors.push("檢查點代碼錯誤");
+        }
       }
 
-      loadingMsg.textContent = "正在查詢...";
-
-      const url = `https://script.google.com/macros/s/AKfycbypUe0_0AHonsawKjpfzfe21jNkklz37tZO3gPq1lvoA2wPAfeKKe7iMR1NelQH9g0thA/exec?t=r&team=${teamIndex}&ckpt=${ckptIndex}`;
-
-      // https://script.google.com/macros/s/AKfycbypUe0_0AHonsawKjpfzfe21jNkklz37tZO3gPq1lvoA2wPAfeKKe7iMR1NelQH9g0thA/exec?t=r&team=1&ckpt=1
-
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          loadingMsg.textContent = "";
-          const state = data.text;
-          const ingredients = ingredientMap[checkpointInput];
-
-          if (!ingredients) {
-            choiceArea.innerHTML = "此檢查點尚未設定配料。";
-            return;
-          }
-
-          // 檢查使用者是否已選擇（state 中某一位等於 teamIndex）
-            let chosenIndex = -1;
-            for (let i = 0; i < state.length; i++) {
-            if (state[i] === String(teamIndex)) {
-                    chosenIndex = i;
-                    break;
-                }
-            }
-
-            if (chosenIndex !== -1) {
-            selectedIngredient.textContent = `您已選擇配料：${ingredients[chosenIndex]}`;
-            const img = document.createElement("img");
-            img.src = ingredientImagesMap[checkpointInput][chosenIndex];
-            img.alt = "Ingredient Image";
-            img.className = "choice-img";
-            selectedIngredient.appendChild(document.createElement("br"));
-            selectedIngredient.appendChild(img);
-            return;
-            }
-
-
-          for (let i = 0; i < 10; i++) {
-            if (state[i] === '0') {
-              const btn = document.createElement("div");
-              btn.className = "choice-btn";
-              btn.innerHTML = `<div>${ingredients[i]}</div><img src="${ingredientImagesMap[checkpointInput][i]}" class="choice-img">`;
-              btn.onclick = () => confirmChoice(teamIndex, ckptIndex, i);
-              choiceArea.appendChild(btn);
-            }
-          }
-        })
-        .catch(err => {
-          console.error("Fetch 錯誤：", err);
-          alert("查詢失敗，請稍後再試。");
-        });
+      if (errors.length > 0) {
+        errorMsg.textContent = errors.join("、");
+      } else {
+        // 通過驗證，可以執行接下來的動作
+        alert("驗證成功！角色：" + role + "，檢查點：" + checkpoint);
+        // 例如：送出請求或導向下一步
+      }
     }
 
-    function confirmChoice(teamIdx, ckptIdx, choiceIdx) {
-      if (!confirm("是否選擇此配料？選擇後即無法修改")) return;
-      const loadingMsg = document.getElementById("loadingMsg");
-      loadingMsg.textContent = "正在送出...";
+  document.getElementById("role").addEventListener("keydown", handleEnter);
+  document.getElementById("checkpoint").addEventListener("keydown", handleEnter);
 
-      const url = `https://script.google.com/macros/s/AKfycbypUe0_0AHonsawKjpfzfe21jNkklz37tZO3gPq1lvoA2wPAfeKKe7iMR1NelQH9g0thA/exec?t=w&team=${teamIdx}&ckpt=${ckptIdx}&choice=${choiceIdx + 1}`;
-
-      fetch(url)
-        .then(res => res.text())
-        .then(text => {
-          loadingMsg.textContent = "";
-          if (text.includes("Success")) {
-            alert("選擇成功！");
-            validateInput(); // 重新查詢狀態
-          } else {
-            alert("選擇失敗，可能已被選走。");
-          }
-        })
-        .catch(err => {
-          console.error("送出錯誤：", err);
-          alert("發送失敗，請稍後再試。")
-        });
+  function handleEnter(event) {
+    if (event.key === "Enter") {
+      validateInputs();
     }
+  }
+
   </script>
 </body>
 </html>
