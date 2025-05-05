@@ -1,29 +1,93 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
   <title>專屬特調定向越野</title>
   <style>
     body {
+      margin: 0;
+      padding: 1rem;
       font-family: Arial, sans-serif;
-      margin: 40px;
+      font-size: 1rem;
+      background-color: #fdfdfd;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+  
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+  
     label {
       display: block;
-      margin-top: 10px;
+      margin: 1rem 0 0.3rem;
+      text-align: center;
+      font-size: 1.1rem;
     }
+  
     input {
-      margin-top: 5px;
-      padding: 5px;
-      width: 200px;
+      font-size: 1.1rem;
+      padding: 0.5rem;
+      width: 80vw;
+      max-width: 300px;
+      box-sizing: border-box;
+      text-align: center;
     }
+  
     button {
-      margin-top: 15px;
-      padding: 8px 16px;
+      margin-top: 1.2rem;
+      padding: 0.8rem 1.2rem;
+      font-size: 1.1rem;
+      background-color: #007BFF;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 80vw;
+      max-width: 300px;
     }
-    .error {
+  
+    button:hover {
+      background-color: #0056b3;
+    }
+  
+    #errorMsg {
       color: red;
-      margin-top: 10px;
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      text-align: center;
+      min-height: 1.2rem;
+    }
+  
+    #result {
+      margin-top: 1.5rem;
+      text-align: center;
+      width: 90vw;
+      max-width: 400px;
+      font-size: 1rem;
+    }
+  
+    .option-button {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px;
+      border: 2px solid #007BFF;
+      border-radius: 10px;
+      background-color: #f0f8ff;
+      cursor: pointer;
+      width: 80vw;
+      max-width: 250px;
+      text-align: center;
+      transition: 0.2s;
+      font-size: 1rem;
+    }
+  
+    .option-button:hover {
+      background-color: #e0f0ff;
+      transform: scale(1.03);
     }
   </style>
 </head>
@@ -41,13 +105,230 @@
 
   <div id="errorMsg" class="error"></div>
 
-  <script>
-    const validRoles = ["NEG", "POS", "DOU", "LON", "NOR", "VAM", "ROC", "SRA"];
-    const validCheckpoints = ["THA", "SIG", "IKE", "TBO", "WBK", "ARP", "XWR", "QYU"];
+  <div id="result" style="margin-top: 20px;"></div>
 
-    function validateInputs() {
+  <script>
+    const roles = [
+    {
+        code: "RESET",
+        name: "重置",
+    },
+    {
+        code: "NEG",
+        name: "傅能量",
+        image: "img.png",
+        stats: {
+            power: 4,
+            charm: 4,
+            strength: 0,
+            intellect: 0
+        }
+    },
+    {
+        code: "POS",
+        name: "鄭能量",
+        image: "img.png",
+        stats: {
+            power: 0,
+            charm: 2,
+            strength: 3,
+            intellect: 3
+        }
+    },
+    {
+        code: "DOU",
+        name: "霜渚修",
+        image: "img.png",
+        stats: {
+            power: 0,
+            charm: 3,
+            strength: 0,
+            intellect: 5
+        }
+    },
+    {
+        code: "LON",
+        name: "常法難",
+        image: "img.png",
+        stats: {
+            power: 1,
+            charm: 0,
+            strength: 4,
+            intellect: 3
+        }
+    },
+    {
+        code: "NOR",
+        name: "浦通任",
+        image: "img.png",
+        stats: {
+            power: 2,
+            charm: 2,
+            strength: 2,
+            intellect: 2
+        }
+    },
+    {
+        code: "VAM",
+        name: "吸血鬼",
+        image: "img.png",
+        stats: {
+            power: 5,
+            charm: 3,
+            strength: -3,
+            intellect: 3
+        }
+    },
+    {
+        code: "ROC",
+        name: "部岩壁",
+        image: "img.png",
+        stats: {
+            power: 2,
+            charm: 2,
+            strength: 1,
+            intellect: 3
+        }
+    },
+    {
+        code: "SRA",
+        name: "小沙彌",
+        image: "img.png",
+        stats: {
+            power: 0,
+            charm: 4,
+            strength: 1,
+            intellect: 3
+        }
+    }    
+    // 其餘角色...
+    ];
+
+    const checkpoints = [
+    {
+        code: "RESET",
+        name: "重置",
+    },
+    {
+        code: "THA",
+        name: "手上拿的書（不用加進飲料裡）",
+        options: [
+        { name: "不拿書", stats: { power: 0, charm: 2, strength: 0, intellect: -3 } },
+        { name: "《大學普通化學實驗》", stats: { power: 0, charm: 0, strength: -3, intellect: 1 } },
+        { name: "《查拉圖斯特拉如是說》", stats: { power: 0, charm: -3, strength: 0, intellect: 4} },
+        { name: "《被討厭的勇氣》", stats: { power: 2, charm: -2, strength: 0, intellect: 0 } },
+        { name: "《全知作者視角》", stats: { power: 3, charm: -1, strength: -2, intellect: 0 } },
+        { name: "《新制多億題庫》", stats: { power: 0, charm: 0, strength: 2, intellect: 2 } },
+        { name: "《規訓與懲罰》", stats: { power: 2, charm: 0, strength: 0, intellect: 1 } },
+        { name: "《四庫全書》", stats: { power: 1, charm: 0, strength: -5, intellect: 5 } },
+        ]
+    },
+    {
+        code: "SIG",
+        name: "前綴",
+        options: [
+        { name: "如果是勇者一定會喜歡的", stats: { power: 0, charm: 4, strength: -2, intellect: 0 } },
+        { name: "山洞的", stats: { power: 0, charm: -4, strength: 2, intellect: 2 } },
+        { name: "我獨自的", stats: { power: 3, charm: 0, strength: 3, intellect: 3 } },
+        { name: "要被罷免的", stats: { power: -4, charm: 0, strength: 3, intellect: 3 } },
+        { name: "愚蠢但實在美麗的", stats: { power: 0, charm: 3, strength: 0, intellect: -2 } },
+        { name: "大鳳梨裡的", stats: { power: 0, charm: -2, strength: 1, intellect: -4 } },
+        { name: "被風吹到的", stats: { power: 0, charm: 0, strength: -3, intellect: -3 } },
+        { name: "免運的", stats: { power: 1, charm: 4, strength: 0, intellect: 0 } },
+        ]
+    },
+    {
+        code: "IKE",
+        name: "配料1",
+        options: [
+        { name: "185體育生", stats: { power: -2, charm: 1, strength: 3, intellect: 0 } },
+        { name: "修但幾勒", stats: { power: 0, charm: -2, strength: 0, intellect: 3 } },
+        { name: "浮力熊 熊浮力", stats: { power: 3, charm: 0, strength: 0, intellect: -3 } },
+        { name: "閃亮耀眼礙之雨", stats: { power: 0, charm: 3, strength: 0, intellect: -2 } },
+        { name: "一首安科曲", stats: { power: 0, charm: 3, strength: 0, intellect: -2 } },
+        { name: "簡報課", stats: { power: 2, charm: 0, strength: -3, intellect: 0 } },
+        { name: "第四人格", stats: { power: -2, charm: -2, strength: 2, intellect: 2 } },
+        { name: "qq餒餒好喝到咩噗", stats: { power: 0, charm: 1, strength: -3, intellect: 0 } },
+        ]
+    },
+    {
+        code: "TBO",
+        name: "愛情學分(飲料甜度)",
+        options: [
+        { name: "全糖之完美愛情", stats: { power: 1, charm: -2, strength: 0, intellect: 1 } },
+        { name: "少糖之得不到的白月光最美好", stats: { power: 0, charm: -2, strength: 1, intellect: 0 } },
+        { name: "七分糖之青梅竹馬", stats: { power: -2, charm: 2, strength: 0, intellect: 0 } },
+        { name: "半糖之跑到沒力的愛情長跑", stats: { power: 0, charm: 0, strength: -2, intellect: 3 } },
+        { name: "微糖之分分合合舊情復燃一百次", stats: { power: 0, charm: 0, strength: 3, intellect: -2 } },
+        { name: "三分糖之遠距離戀愛", stats: { power: 0, charm: 1, strength: 0, intellect: -2 } },
+        { name: "一分糖之我們都忘記玩也會累了", stats: { power: 1, charm: 0, strength: -3, intellect: 0 } },
+        { name: "無糖之天選無情道修士", stats: { power: 0, charm: -2, strength: 0, intellect: 3 } },
+        ]
+    },
+    {
+        code: "WBK",
+        name: "配料2（可以加佐字 你懂的）",
+        options: [
+        { name: "你在玩火", stats: { power: 2, charm: -3, strength: 0, intellect: 0 } },
+        { name: "可是瑞凡", stats: { power: 0, charm: 3, strength: 0, intellect: -3 } },
+        { name: "哥布林", stats: { power: 0, charm: -4, strength: 2, intellect: 2 } },
+        { name: "拿你逮死ㄎ一ˊ", stats: { power: 0, charm: 0, strength: 3, intellect: -2 } },
+        { name: "海的對面是⋯⋯", stats: { power: -2, charm: 0, strength: 3, intellect: 0 } },
+        { name: "露比醬", stats: { power: -1, charm: 2, strength: 0, intellect: -1 } },
+        { name: "死亡之握", stats: { power: 3, charm: 0, strength: -4, intellect: 0 } },
+        { name: "蜜月期偷偷", stats: { power: 3, charm: -2, strength: 0, intellect: 0 } },
+        ]
+    },
+    {
+        code: "ARP",
+        name: "基底1",
+        options: [
+        { name: "文張牛肉湯", stats: { power: 3, charm: -4, strength: 2, intellect: 0 } },
+        { name: "活大自助餐", stats: { power: 0, charm: -3, strength: -3, intellect: 6 } },
+        { name: "木喂二是為了飲料還是店員", stats: { power: 0, charm: 4, strength: 0, intellect: -3 } },
+        { name: "普通紅茶", stats: { power: 0, charm: 0, strength: 0, intellect: 0 } },
+        { name: "等很久的小木屋鬆餅", stats: { power: 0, charm: 0, strength: -4, intellect: 2 } },
+        { name: "大岩壁", stats: { power: 2, charm: -2, strength: 0, intellect: 3 } },
+        { name: "失敗加簽單", stats: { power: -3, charm: 0, strength: 4, intellect: 0 } },
+        { name: "溫州街很貴的咖啡", stats: { power: 0, charm: 3, strength: -2, intellect: -2 } },
+        ]
+    },
+    {
+        code: "XWR",
+        name: "耳機聽的歌（不用加進飲料裡）",
+        options: [
+        { name: "《新夏夜晚風》", stats: { power: 3, charm: 0, strength: 0, intellect: -2 } },
+        { name: "《老夏夜晚風》", stats: { power: 0, charm: 0, strength: -3, intellect: 3 } },
+        { name: "《萬本櫻》", stats: { power: 2, charm: -1, strength: 0, intellect: 0 } },
+        { name: "《跳海機》", stats: { power: 0, charm: -4, strength: 0, intellect: -3 } },
+        { name: "《瑪德蓮不思議》", stats: { power: 0, charm: 2, strength: 2, intellect: 0 } },
+        { name: "《BPT》", stats: { power: -2, charm: 3, strength: 0, intellect: 0 } },
+        { name: "《愛如火》", stats: { power: -3, charm: 0, strength: 2, intellect: 0 } },
+        { name: "《告白熱氣球》", stats: { power: 0, charm: 0, strength: 3, intellect: -2 } },
+        ]
+    },
+    {
+        code: "QYU",
+        name: "身上的配件（不用加進飲料裡）",
+        options: [
+        { name: "吉一卡哇玩偶", stats: { power: 1, charm: 2, strength: -2, intellect: 0 } },
+        { name: "不神奇寶貝吊飾", stats: { power: -3, charm: 0, strength: 3, intellect: 0 } },
+        { name: "黑眼圈", stats: { power: 0, charm: 0, strength: -4, intellect: 3 } },
+        { name: "魅力加二戒指", stats: { power: 0, charm: 2, strength: 0, intellect: 0 } },
+        { name: "大金項鍊", stats: { power: 2, charm: -2, strength: 0, intellect: -1 } },
+        { name: "兒童玩具手錶", stats: { power: 0, charm: -2, strength: 2, intellect: 0 } },
+        { name: "台大生標籤貼紙", stats: { power: -1, charm: 0, strength: 0, intellect: 2 } },
+        { name: "垃圾", stats: { power: 2, charm: -2, strength: 0, intellect: 0 } },
+        ]
+    },
+    ];
+
+    async function validateInputs() {
       const role = document.getElementById("role").value.trim().toUpperCase();
       const checkpoint = document.getElementById("checkpoint").value.trim().toUpperCase();
+      const roleIndex = roles.findIndex(r => r.code === role);
+      const checkpointIndex = checkpoints.findIndex(cp => cp.code === checkpoint);
+
       const errorMsg = document.getElementById("errorMsg");
       errorMsg.textContent = ""; // 清除之前的錯誤訊息
 
@@ -56,10 +337,10 @@
       if (!role || !checkpoint) {
         errors.push("請填寫所有欄位。");
       } else {
-        if (!validRoles.includes(role)) {
+        if (roleIndex === -1) {
           errors.push("角色代碼錯誤");
         }
-        if (!validCheckpoints.includes(checkpoint)) {
+        if (checkpointIndex === -1) {
           errors.push("檢查點代碼錯誤");
         }
       }
@@ -68,8 +349,17 @@
         errorMsg.textContent = errors.join("、");
       } else {
         // 通過驗證，可以執行接下來的動作
-        alert("驗證成功！角色：" + role + "，檢查點：" + checkpoint);
-        // 例如：送出請求或導向下一步
+        errorMsg.textContent = "載入中...";
+        try {
+            const res = await fetchCheckpointOptions(roleIndex, checkpointIndex);
+            errorMsg.textContent = ""; // 清除 正在處理請求... 的錯誤訊息
+            if (res != "") {
+                errorMsg.textContent = res; // 顯示伺服器回傳的資料
+            }
+        } catch (error) {
+            errorMsg.textContent = "處理請求時發生錯誤";
+            console.error(error);
+        }
       }
     }
 
@@ -80,6 +370,108 @@
     if (event.key === "Enter") {
       validateInputs();
     }
+  }
+
+  const endpoint = "https://script.google.com/macros/s/AKfycbypUe0_0AHonsawKjpfzfe21jNkklz37tZO3gPq1lvoA2wPAfeKKe7iMR1NelQH9g0thA/exec?t=r";
+
+  async function fetchCheckpointOptions(roleIndex, checkpointIndex) {
+  const url = `${endpoint}&role=${roleIndex}&ckpt=${checkpointIndex}`;
+  return fetch(url)
+    .then(response => response.json())
+    .then(data => {
+    const text = data.text; // 例如 "60810000"
+    if (roleIndex === 0 || checkpointIndex === 0) {
+        // 重置角色和檢查點的情況
+        return text;
+    }
+    const assigned = text.split("").map(c => parseInt(c)); // [6, 0, 8, 1, 0, 0, 0, 0]
+    const options = checkpoints[checkpointIndex].options;
+
+    const container = document.getElementById("result");
+    container.innerHTML = ""; // 清空先前結果
+    container.innerHTML = `<h3>${checkpoints[checkpointIndex].name}</h3>`;
+
+    const assignedIndex = assigned.findIndex(v => v === roleIndex);
+
+    if (assignedIndex !== -1) {
+        // 這位角色已選擇某個 option
+        const chosen = options[assignedIndex];
+        container.innerHTML += `<h3>你已選擇的配料：</h3>
+        <p><strong>${chosen.name}</strong></p>
+        <ul>
+            <li>權力：${chosen.stats.power}</li>
+            <li>魅力：${chosen.stats.charm}</li>
+            <li>體力：${chosen.stats.strength}</li>
+            <li>智力：${chosen.stats.intellect}</li>
+        </ul>`;
+    } else {
+        // 尚未選擇，列出尚未被選走的所有配料
+        // 內部於 fetchCheckpointOptions 中的 else 區塊
+        container.innerHTML += `<h4>點擊以下按鈕選擇：</h4>`;
+        assigned.forEach((v, i) => {
+        if (v === 0) {
+            const opt = options[i];
+            const btn = document.createElement("button");
+            btn.innerHTML = `
+            <div><strong>${opt.name}</strong></div>
+            <ul style="text-align: left; margin: 5px 0;">
+                <li>權力：${opt.stats.power}</li>
+                <li>魅力：${opt.stats.charm}</li>
+                <li>體力：${opt.stats.strength}</li>
+                <li>智力：${opt.stats.intellect}</li>
+            </ul>`;
+            btn.style.display = "inline-block";
+            btn.style.margin = "10px";
+            btn.style.padding = "10px";
+            btn.style.border = "2px solid #007BFF";
+            btn.style.borderRadius = "10px";
+            btn.style.backgroundColor = "#f0f8ff";
+            btn.style.cursor = "pointer";
+            btn.style.width = "180px";
+            btn.style.textAlign = "center";
+            btn.style.fontFamily = "inherit";
+            btn.onmouseover = () => { btn.style.backgroundColor = "#e0f0ff"; };
+            btn.onmouseout = () => { btn.style.backgroundColor = "#f0f8ff"; };
+
+            btn.onclick = () => {
+            // 點擊按鈕後，顯示確認訊息 (確定選擇此配料嗎？選擇後即無法更改)
+            const confirmMsg = `確定選擇 ${opt.name} 嗎？選擇後即無法更改！`;
+            if (!confirm(confirmMsg)) return; // 如果使用者按取消，則不執行後續操作
+            // 發送請求到 Google Apps Script
+            const confirmURL = `https://script.google.com/macros/s/AKfycbypUe0_0AHonsawKjpfzfe21jNkklz37tZO3gPq1lvoA2wPAfeKKe7iMR1NelQH9g0thA/exec?t=w&role=${roleIndex}&ckpt=${checkpointIndex}&option=${i + 1}`;
+            fetch(confirmURL)
+                .then(resp => resp.json())
+                .then(res => {
+                if (res.text === "Success") {
+                    container.innerHTML = `<h3>配料選擇成功！</h3>
+                    <p><strong>${opt.name}</strong></p>
+                    <ul>
+                        <li>權力：${opt.stats.power}</li>
+                        <li>魅力：${opt.stats.charm}</li>
+                        <li>體力：${opt.stats.strength}</li>
+                        <li>智力：${opt.stats.intellect}</li>
+                    </ul>`;
+                } else {
+                    alert("選擇失敗，可能是該配料已被他人選走！");
+                    fetchCheckpointOptions(roleIndex, checkpointIndex); // 重新載入當前狀態
+                }
+                })
+                .catch(() => {
+                alert("無法送出選擇，請稍後再試。");
+                });
+            };
+
+            container.appendChild(btn);
+        }
+        });
+
+    }
+    })
+    .catch(err => {
+    console.error("錯誤：", err);
+    alert("無法取得資料，請稍後再試。");
+    });
+    return ""; // 返回空字串，因為這裡不需要返回任何東西
   }
 
   </script>
