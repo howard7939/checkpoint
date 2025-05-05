@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>專屬特調定向越野</title>
   <style>
     body {
@@ -14,11 +15,17 @@
       flex-direction: column;
       align-items: center;
     }
-  
+
     h1 {
-      text-align: center;
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 1px;
+    }
+
+    input {
+    border: 1px solid #ccc;
+    border-radius: 5px;
     }
   
     label {
@@ -89,25 +96,61 @@
       background-color: #e0f0ff;
       transform: scale(1.03);
     }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: center;
+        width: 100%;
+    }
+
+    .button-group button {
+    width: 80vw;
+    max-width: 300px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    }
+
+    #queryButton {
+    background-color: #28a745;
+    }
+
+    #queryButton:hover {
+    background-color: #1e7e34;
+    }
   </style>
 </head>
 <body>
-  <h1>專屬特調定向越野</h1>
+  <div class="container">
+      
+    <h1>專屬特調定向越野</h1>
 
-  <label for="role">角色代碼：</label>
-  <input type="text" id="role" style="text-transform: uppercase">
+    <div class="form-group">
+        <label for="role">角色代碼：</label>
+        <input type="text" id="role" style="text-transform: uppercase">
+        <label for="checkpoint">檢查點代碼：</label>
+        <input type="text" id="checkpoint" style="text-transform: uppercase">
+    </div>
 
-  <label for="checkpoint">檢查點代碼：</label>
-  <input type="text" id="checkpoint" style="text-transform: uppercase">
+    <div class="button-group">
+        <button onclick="validateInputs()">送出</button>
+        <button id="queryButton">查詢已收集的配料</button>
+    </div>
 
-  <br/>
-  <button onclick="validateInputs()">送出</button>
+    <div id="errorMsg" class="error"></div>
 
-  <button id="queryButton">查詢已收集的配料</button>
-
-  <div id="errorMsg" class="error"></div>
-
-  <div id="result" style="margin-top: 20px;"></div>
+    <div id="result" style="margin-top: 20px;"></div>
+  </div>
 
   <script>
     const roles = [
